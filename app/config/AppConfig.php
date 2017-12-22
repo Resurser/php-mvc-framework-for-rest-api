@@ -6,12 +6,28 @@
 
 class AppConfig {
 
-    function __construct() {}
-    
+    function __construct() {
+        
+    }
+
     private $defaultController = "default";
-    
+    private $libraries = ['console', 'output'];
+    private $models = [
+        'test' => ['user']
+    ];
+
+    public function getModels($controller = "") {
+        if (!array_key_exists($controller, $this->models))
+            die("No models are defined for '$controller' controller");
+        return $this->models[$controller];
+    }
+
     public function getDefaultController() {
         return $this->defaultController;
+    }
+
+    public function getLibraries() {
+        return $this->libraries;
     }
 
 }

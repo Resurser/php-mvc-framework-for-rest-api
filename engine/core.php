@@ -12,38 +12,49 @@ class core {
 
     public function invokeControllerFunction() {
         $uris = $this->getURIs();
-        var_dump($uris);
         $this->import("app/config/AppConfig.php");
         $this->import("app/controllers/core/CoreController.php");
+        $this->import("app/models/core/CoreModel.php");
 
         $appConfig = new AppConfig();
 
-        $controller = (isset($uris[0]) && $uris[0] != "" ? $uris[0] : $appConfig->getDefaultController());
+        $controller = strtolower(isset($uris[0]) && $uris[0] != "" ? $uris[0] : $appConfig->getDefaultController());
         $function = isset($uris[1]) && $uris[1] != "" ? $uris[1] : "index";
         $data = array_slice($uris, 2);
 
-        $controllerPath = 'app/controllers/' . $controller . '.php';
-        
+        $controllerPath = "app/controllers/$controller.php";
         if (!$this->isFileExist($controllerPath))
             $this->show_404();
 
         $this->import($controllerPath);
-        
-        p("controller " . $controller);
-        p("function " . $function);
-        p($data);
 
-        if (!class_exists($controller, false)) { echo "controller exist";
-          //  $this->show_404();
-        }
-        
-        $controller = ucfirst($controller);
-        
-        $controllerObject = new $controller;
-
-        if (!method_exists($controllerObject, $function)) { echo "function exist";
+        if (!class_exists($controller, false)) {
+            echo "controller exist";
             $this->show_404();
         }
+
+        $controller = ucfirst($controller);
+        $controllerObject = new $controller;
+
+        if (!method_exists($controllerObject, $function)) {
+            $this->show_404();
+        }
+
+        $libs = $appConfig->getLibraries();
+        foreach ($libs as $lib) {
+            $libPath = "app/libs/$lib.php";
+            $this->import($libPath);
+            $controllerObject->$lib = new $lib();
+        }
+
+        $models = $appConfig->getModels(strtolower($controller));
+        foreach ($models as $model) {
+            $modelPath = "app/models/$model.php";
+            $this->import($modelPath);
+            $controllerObject->$lib = new $lib();
+        }
+
+        $controllerObject->$function();
     }
 
     public function getURIs() {
@@ -51,8 +62,8 @@ class core {
         if ($uris[0] == "/")
             $uris[0] = "";
         $lastStringIndex = strlen($uris) - 1;
-        if ($uris[$lastStringIndex] == "/")
-            $uris[$lastStringIndex] = "";
+//        if ($uris[$lastStringIndex] == "/")
+//            $uris[$lastStringIndex] = "";
 
         $uriSet = explode("/", $uris);
         array_shift($uriSet);
@@ -65,7 +76,6 @@ class core {
 
     public function isFileExist($path = "") {
         $filePath = strval(str_replace("\0", "", WORKING_DIRECTORY . $path));
-        echo $filePath;
         return file_exists($filePath);
     }
 
