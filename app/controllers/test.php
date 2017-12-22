@@ -10,27 +10,37 @@ class Test {
         $details = $user->getDetails();
 
         $this->console->p_array($details);
-        
-        $this->output->view('home', ['greeting'=>'Welcome to the beauty!']);
-        
+
+        $this->output->view('home', ['greeting' => 'Welcome to the beauty!']);
     }
 
     public function run() {
-        echo "Im a test run";
+//        $this->db->update([
+//            "id" => 1,
+//            "name" => "John"
+//        ])->from("division")->where([
+//            "id" => 1
+//                ], "OR")->exec();
+
+
+        $this->db->delete(['id' => 1, 'name' => 'John'])->from('division')->where(["id" => 1, "name"=>"John"], "OR")->exec();
+
+
+        echo "<p>" . $this->db->lastQuery() . "</p>";
+        echo "<p>" . $this->db->lastQuery(FALSE) . "</p>";
     }
-    
+
     public function json() {
         $data['name'] = "John Doe";
         $data['age'] = "26";
         $data['mobileNumbers'] = [
-            ['number'=>0123456789, 'active'=>'yes'],
-            ['number'=>0123456789, 'active'=>'yes'],
-            ['number'=>0123456789, 'active'=>'yes'],
-            ['number'=>0123456789, 'active'=>'yes'],
+            ['number' => 0123456789, 'active' => 'yes'],
+            ['number' => 0123456789, 'active' => 'yes'],
+            ['number' => 0123456789, 'active' => 'yes'],
+            ['number' => 0123456789, 'active' => 'yes'],
         ];
         $data['address'] = 'No. 1 Big Tree Road, Mountain Road, Fores';
         $this->output->REST($data, true, "Request is succeed!");
     }
-    
 
 }

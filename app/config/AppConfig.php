@@ -11,9 +11,15 @@ class AppConfig {
     }
 
     private $defaultController = "default";
-    private $libraries = ['console', 'output'];
+    private $libraries = ['console', 'output', 'db'];
     private $models = [
         'test' => ['user']
+    ];
+    private $dbConfig = [
+        "host" => "localhost",
+        "username" => "root",
+        "password" => "",
+        "database" => "cx_pulse",
     ];
 
     public function getModels($controller = "") {
@@ -28,6 +34,10 @@ class AppConfig {
 
     public function getLibraries() {
         return $this->libraries;
+    }
+
+    public function getDBConfig() {
+        return $this->dbConfig;
     }
 
 }

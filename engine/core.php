@@ -29,12 +29,13 @@ class core {
         $this->import($controllerPath);
 
         if (!class_exists($controller, false)) {
-            echo "controller exist";
             $this->show_404();
         }
 
         $controller = ucfirst($controller);
         $controllerObject = new $controller;
+        
+        $controllerObject->config =& $appConfig;
 
         if (!method_exists($controllerObject, $function)) {
             $this->show_404();
@@ -45,13 +46,17 @@ class core {
             $libPath = "app/libs/$lib.php";
             $this->import($libPath);
             $controllerObject->$lib = new $lib();
+            if ($lib=="db") {
+                $controllerObject->$lib->config = $controllerObject->config->getDBConfig();
+                $controllerObject->$lib->init();
+            }
         }
 
-        $models = $appConfig->getModels(strtolower($controller));
+        $models = $appConfig->getModels(strtolower($controller));    
         foreach ($models as $model) {
             $modelPath = "app/models/$model.php";
-            $this->import($modelPath);
-            $controllerObject->$lib = new $lib();
+            $this->import($modelPath);    
+            $controllerObject->$model = new $model();
         }
 
         $controllerObject->$function();
