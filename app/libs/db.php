@@ -10,20 +10,23 @@ class db {
         
     }
 
-    private $connection = null;
+    private $pdoConnection = null;
     private $columns = "*";
     private $insertColumns = "";
     private $executableInsertValues = "";
     private $printableInsertValues = "";
+    private $where = [];
     private $set = "";
     private $table = "";
-    private $executableWhere = " WHERE ";
-    private $printableWhere = " WHERE ";
+    private $executableWhere = "";
+    private $printableWhere = "";
     private $action = "";
     private $printableSQL = "";
     private $executableSQL = "";
     private $printableSet = " SET ";
+    private $insertableValues = [];
     private $executableSet = " SET ";
+    private $deleteColumns = "*";
 
     public function init() {
         $host = $this->config['host'];
@@ -32,7 +35,7 @@ class db {
         $database = $this->config['database'];
 
         try {
-            $this->connection = new PDO('mysql://host=$host;dbname=' . $database . ';', $username, $password, array(PDO::ATTR_PERSISTENT => true));
+            $this->pdoConnection = new PDO('mysql://host=$host;dbname=' . $database . ';', $username, $password, [PDO::ATTR_PERSISTENT => true, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
         } catch (Exception $e) {
             die("Failed to connect database: " . $e->getMessage());
         }
@@ -44,19 +47,21 @@ class db {
         return $this;
     }
 
-    public function delete() {
+    public function delete($deleteColumns = "*") {
         $this->action = "delete";
         return $this;
     }
 
-    public function insert($insert = []) {
+    public function insert($table, $insert = []) {
+        $this->table = $table;
         $this->action = "insert";
         $delim = "";
         foreach ($insert as $k => $v) {
             $this->insertColumns .= $delim . "$k";
             $this->executableInsertValues .= $delim . "?";
-            $this->printableInsertValues .= $delim . "$v";
+            $this->printableInsertValues .= $delim . "'$v'";
             $delim = ", ";
+            $this->insertableValues[] = $v;
         }
         return $this;
     }
@@ -80,6 +85,8 @@ class db {
 
     public function where($where = [], $gate = "AND") {
         $delm = "";
+        $this->executableWhere = " WHERE ";
+        $this->where = $where;
         $this->printableWhere = $this->executableWhere;
         foreach ($where as $k => $v) {
             $this->executableWhere .= $delm . " $k = :$k ";
@@ -108,14 +115,50 @@ class db {
                 $this->executableSQL = "DELETE FROM " . $this->table . $this->executableWhere;
                 break;
         }
+        return $this->executableSQL;
     }
 
     public function lastQuery($executable = true) {
         return $executable ? $this->executableSQL : $this->printableSQL;
     }
 
-    public function exec() {
-        $this->makeQuery();
+    public function exec($table = "") {
+        if ($table != "")
+            $this->table = $table;
+        else
+            $this->hault("Table name is not specified");
+
+        $sql = $this->makeQuery();
+        echo $sql;
+        echo "<br>";
+        $sql = $this->makeQuery(true);
+        echo $sql;
+
+        try {
+            $statementHandler = $this->pdoConnection->prepare($sql);
+            if ($this->action == "insert") {
+                return $statementHandler->execute($this->insertableValues);
+            } else if ($this->action == "delete") {
+                return $statementHandler->execute($this->where);
+            } else if ($this->action == "update") {
+                return $statementHandler->execute($this->set);
+            } else if ($this->action == "select") {
+                $statementHandler->execute($this->where);
+                return $statementHandler->fetchAll(PDO::FETCH_CLASS, "DataObject");
+            }
+            echo "<br>";
+            echo $this->lastQuery(false);
+        } catch (PDOException $e) {
+            $this->hault("Error executing database query " . $e->getMessage());
+        }
     }
 
+    public function hault($data = "") {
+        die("<p><small><b>" . $data . "</b></small></p>");
+    }
+
+}
+
+class DataObject {
+    
 }

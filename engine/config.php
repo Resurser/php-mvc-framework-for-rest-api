@@ -1,7 +1,6 @@
 <?php
 
 define("BASE_URL", "http://localhost/venus/");
-define("ENVIRONMENT", "development");
 
 if (version_compare(PHP_VERSION, '5.3.0', '>=')) {
     define("WORKING_DIRECTORY", __DIR__ . "/../");
@@ -9,8 +8,11 @@ if (version_compare(PHP_VERSION, '5.3.0', '>=')) {
     define("WORKING_DIRECTORY", dirname(__FILE__) . "/../");
 }
 
+define("ENVIRONMENT", "development");
+
 switch (ENVIRONMENT) {
     case "development":
+        error_reporting(E_ALL);
         ini_set("display_errors", 1);
         break;
     case "test":

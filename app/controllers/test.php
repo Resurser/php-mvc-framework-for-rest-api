@@ -15,16 +15,11 @@ class Test {
     }
 
     public function run() {
-//        $this->db->update([
-//            "id" => 1,
-//            "name" => "John"
-//        ])->from("division")->where([
-//            "id" => 1
-//                ], "OR")->exec();
 
-
-        $this->db->delete(['id' => 1, 'name' => 'John'])->from('division')->where(["id" => 1, "name"=>"John"], "OR")->exec();
-
+//        $this->db->update(['id' => 2, 'name'=>'Test'])->where(['id'=>2])->exec("division");
+        
+        $res = $this->db->select('*')->exec('division');
+        $this->console->p_array($res);
 
         echo "<p>" . $this->db->lastQuery() . "</p>";
         echo "<p>" . $this->db->lastQuery(FALSE) . "</p>";
@@ -44,3 +39,4 @@ class Test {
     }
 
 }
+
