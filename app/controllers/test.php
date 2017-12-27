@@ -18,7 +18,7 @@ class Test {
 
 //        $this->db->update(['id' => 2, 'name'=>'Test'])->where(['id'=>2])->exec("division");
         
-        $res = $this->db->select('*')->exec('division');
+        $res = $this->db->select('*')->where(['id'=>6])->exec('division');
         $this->console->p_array($res);
 
         echo "<p>" . $this->db->lastQuery() . "</p>";

@@ -129,10 +129,6 @@ class db {
             $this->hault("Table name is not specified");
 
         $sql = $this->makeQuery();
-        echo $sql;
-        echo "<br>";
-        $sql = $this->makeQuery(true);
-        echo $sql;
 
         try {
             $statementHandler = $this->pdoConnection->prepare($sql);
@@ -146,10 +142,8 @@ class db {
                 $statementHandler->execute($this->where);
                 return $statementHandler->fetchAll(PDO::FETCH_CLASS, "DataObject");
             }
-            echo "<br>";
-            echo $this->lastQuery(false);
         } catch (PDOException $e) {
-            $this->hault("Error executing database query " . $e->getMessage());
+            $this->hault("Error executing database query <br>" . $e->getMessage());
         }
     }
 
