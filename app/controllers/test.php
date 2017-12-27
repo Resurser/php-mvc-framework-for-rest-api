@@ -5,18 +5,21 @@ class Test {
     public function index() {
         echo "Im a test index";
         $this->console->log("Log is working!");
-
         $user = new User();
         $details = $user->getDetails();
-
         $this->console->p_array($details);
-
         $this->output->view('home', ['greeting' => 'Welcome to the beauty!']);
     }
 
     public function run() {
-
-//        $this->db->update(['id' => 2, 'name'=>'Test'])->where(['id'=>2])->exec("division");
+        $this->db->beginTransaction();
+        $id = 6;
+        $this->db->update(['id' => $id, 'name'=>'Test'])->where(['id'=>2])->exec("division");
+        if ($id==2) {
+            $this->db->rollBack();
+        } else {
+            $this->db->commit();
+        }
         
         $res = $this->db->select('*')->where(['id'=>6])->exec('division');
         $this->console->p_array($res);

@@ -150,6 +150,15 @@ class db {
     public function hault($data = "") {
         die("<p><small><b>" . $data . "</b></small></p>");
     }
+    public function beginTransaction() {
+        $this->pdoConnection->beginTransaction();
+    }
+    public function commit() {
+        $this->pdoConnection->commit();
+    }
+    public function rollBack() {
+        $this->pdoConnection->rollBack();
+    }
 
 }
 
