@@ -10,10 +10,11 @@ class AppConfig {
         
     }
 
-    private $defaultController = "default";
-    private $libraries = ['console', 'output', 'db'];
+    private $defaultController = "test";
+    private $libraries = ['console', 'output', 'db', 'input'];
     private $models = [
-        'test' => ['user']
+        'test' => ['user'],
+        'division'=>['main'=>'DivisionModel']
     ];
     private $dbConfig = [
         "host" => "localhost",

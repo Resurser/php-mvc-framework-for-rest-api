@@ -14,13 +14,20 @@ class core {
         $uris = $this->getURIs();
         $this->import("app/config/AppConfig.php");
         $this->import("app/controllers/core/CoreController.php");
+        $this->import("app/controllers/core/RESTController.php");
         $this->import("app/models/core/CoreModel.php");
 
         $appConfig = new AppConfig();
 
         $controller = strtolower(isset($uris[0]) && $uris[0] != "" ? $uris[0] : $appConfig->getDefaultController());
-        $function = isset($uris[1]) && $uris[1] != "" ? $uris[1] : "index";
-        $data = array_slice($uris, 2);
+        $function = isset($uris[1]) && $uris[1] != "" && !is_numeric($uris[1]) ? $uris[1] : "index";
+        
+        if (isset($uris[1]) && is_numeric($uris[1])) {
+            $uriData = array_slice($uris, 1);
+        } else {
+            $uriData = array_slice($uris, 2);
+        }
+        
 
         $controllerPath = "app/controllers/$controller.php";
         if (!$this->isFileExist($controllerPath))
@@ -34,31 +41,41 @@ class core {
 
         $controller = ucfirst($controller);
         $controllerObject = new $controller;
-        
-        $controllerObject->config =& $appConfig;
+
+        $controllerObject->config = & $appConfig;
 
         if (!method_exists($controllerObject, $function)) {
             $this->show_404();
         }
 
         $libs = $appConfig->getLibraries();
+        $loadedLibs = [];
         foreach ($libs as $lib) {
             $libPath = "app/libs/$lib.php";
             $this->import($libPath);
             $controllerObject->$lib = new $lib();
-            if ($lib=="db") {
+            $loadedLibs[$lib] = $controllerObject->$lib;
+            if ($lib == "db") {
                 $controllerObject->$lib->config = $controllerObject->config->getDBConfig();
                 $controllerObject->$lib->init();
             }
+            if ($lib == "input") {
+                $controllerObject->$lib->uriData = $uriData;
+            }
         }
 
-        $models = $appConfig->getModels(strtolower($controller));    
-        foreach ($models as $model) {
+        $models = $appConfig->getModels(strtolower($controller));
+        foreach ($models as $k => $model) {
             $modelPath = "app/models/$model.php";
-            $this->import($modelPath);    
-            $controllerObject->$model = new $model();
+            $this->import($modelPath);
+            $modelObject = new $model();
+            $modelObject->loadLibs($loadedLibs);
+            $controllerObject->$model = $modelObject;
+            if ($k == "main") {
+                $controllerObject->model = $controllerObject->$model;
+            }
         }
-
+        $controllerObject->core = $this;
         $controllerObject->$function();
     }
 

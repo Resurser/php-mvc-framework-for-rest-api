@@ -41,10 +41,21 @@ class db {
         }
     }
 
-    public function select($columns = "*") {
+    public function select($columns = "*", $where = null, $from = null, $gate = "AND") {
         $this->action = "select";
         $this->columns = $columns;
-        return $this;
+
+        if ($where != null) {
+            $this->where($where, $gate);
+        }
+        if ($from != null) {
+            $this->from($from);
+        }
+
+        if ($where != null && $from != null)
+            return $this->exec();
+        else
+            return $this;
     }
 
     public function delete($deleteColumns = "*") {
@@ -52,7 +63,7 @@ class db {
         return $this;
     }
 
-    public function insert($table, $insert = []) {
+    public function insert($table = "", $insert = []) {
         $this->table = $table;
         $this->action = "insert";
         $delim = "";
@@ -63,10 +74,10 @@ class db {
             $delim = ", ";
             $this->insertableValues[] = $v;
         }
-        return $this;
+        return $this->exec($this->table);
     }
 
-    public function update($set = []) {
+    public function update($set = [], $where = null, $table = null, $gate = "AND") {
         $this->set = $set;
         $this->action = "update";
         $delm = "";
@@ -75,7 +86,13 @@ class db {
             $this->printableSet .= $delm . " $k = '$v' ";
             $delm = ", ";
         }
-        return $this;
+
+        if ($where != null && $table != null) {
+            $this->where($where, $gate);
+            return $this->exec($table);
+        } else {
+            return $this;
+        }
     }
 
     public function from($table = "") {
@@ -125,11 +142,7 @@ class db {
     public function exec($table = "") {
         if ($table != "")
             $this->table = $table;
-        else
-            $this->hault("Table name is not specified");
-
         $sql = $this->makeQuery();
-
         try {
             $statementHandler = $this->pdoConnection->prepare($sql);
             if ($this->action == "insert") {
@@ -137,25 +150,29 @@ class db {
             } else if ($this->action == "delete") {
                 return $statementHandler->execute($this->where);
             } else if ($this->action == "update") {
-                return $statementHandler->execute($this->set);
+                $mergedData = array_merge($this->set, $this->where);
+                return $statementHandler->execute($mergedData);
             } else if ($this->action == "select") {
                 $statementHandler->execute($this->where);
                 return $statementHandler->fetchAll(PDO::FETCH_CLASS, "DataObject");
             }
         } catch (PDOException $e) {
-            $this->hault("Error executing database query <br>" . $e->getMessage());
+            $this->hault($e->getMessage() . "<br>Executed <b>" . $this->lastQuery(true) . "</b> as <b>" . $this->lastQuery(false) . "</b>");
         }
     }
 
     public function hault($data = "") {
-        die("<p><small><b>" . $data . "</b></small></p>");
+        die("<p><small>" . $data . "</small></p>");
     }
+
     public function beginTransaction() {
         $this->pdoConnection->beginTransaction();
     }
+
     public function commit() {
         $this->pdoConnection->commit();
     }
+
     public function rollBack() {
         $this->pdoConnection->rollBack();
     }

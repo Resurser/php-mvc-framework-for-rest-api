@@ -7,6 +7,7 @@
 class CoreController {
 
     function __construct() {
+        echo "Core controller initiated!";
     }
 
 }

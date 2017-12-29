@@ -1,6 +1,6 @@
 <?php
 
-class Test {
+class Test extends RESTController {
 
     public function index() {
         echo "Im a test index";
@@ -38,7 +38,7 @@ class Test {
             ['number' => 0123456789, 'active' => 'yes'],
         ];
         $data['address'] = 'No. 1 Big Tree Road, Mountain Road, Fores';
-        $this->output->REST($data, true, "Request is succeed!");
+        $this->output->REST($data, false, "Request is succeed!");
     }
 
 }
